@@ -1,7 +1,5 @@
 #include "server_hangman_functions.h"
 
-/* Send set roles to both clients */
-/* Client connected first is the MASTER and second is GUESSER */
 void print_role(struct Player* player)
 {
     char write_buff[MAXLINE];
@@ -22,7 +20,6 @@ void print_role(struct Player* player)
     
 }
 
-/* Receive clue sent by MASTER - alias for simple read */
 void get_clue(struct Player* player, char* clue_buff)
 {
     
@@ -32,10 +29,10 @@ void get_clue(struct Player* player, char* clue_buff)
         return;
     }
 
+    puts("Clue: ");
     puts(clue_buff);
 }
 
-/* Check if client's guess is correct */
 bool char_in_clue(char guess, char* clue_buff, char* guessed_clue_buff)
 {
     bool val = false;
@@ -52,8 +49,6 @@ bool char_in_clue(char guess, char* clue_buff, char* guessed_clue_buff)
     return val;
 }
 
-/* guessed_clue_buff is a buffer containing concealed clue */
-/* Modify the buffer to have '_' as many as the real legth of the clue is (do not count NULLs) */
 void init_guessed_buff(char* clue_buff, char* guessed_clue_buff)
 {
     int clue_len = 0;
@@ -70,7 +65,6 @@ void init_guessed_buff(char* clue_buff, char* guessed_clue_buff)
     }
 }
 
-/* Check if whole clue is guessed */
 bool check_if_clue_guessed(char* guessed_clue_buff)
 {
     puts(guessed_clue_buff);

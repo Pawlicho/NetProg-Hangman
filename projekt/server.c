@@ -7,8 +7,6 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <errno.h>
-#include <string.h>
-#include <fcntl.h>
 #include <stdbool.h>
 #include <sys/wait.h>
 
@@ -17,11 +15,13 @@
 
 #define LISTENQ                 (2)
 
+/* SIGCHLD handler */
 void sig_chld(int signo)
 {
     pid_t pid;
     int stat;
 
+    /* Wait until all  terminated child processes have been handled */
     while ((pid = waitpid(-1, &stat, WNOHANG)) > 0)
         printf("child %d terminated\n", pid);
     return;
@@ -32,13 +32,13 @@ int main(int argc, char* argv[])
     int listen_fd;
     struct sockaddr_in6 serv_addr;
     struct Player players[MAX_NUMBER_OF_PLAYERS];
-    char read_buff[MAXLINE];
     char write_buff[MAXLINE];
     char clue_buff[CLUE_MAX_SIZE] = {};
     char guessed_clue_buff[CLUE_MAX_SIZE] = {};
     pid_t childpid;
 
     int client_ctr = 0;
+
 
     signal(SIGCHLD, sig_chld);
 
@@ -50,13 +50,13 @@ int main(int argc, char* argv[])
     }
 
     /* Set SO_REUSEADDR sockopt */
-    int optval = 1;               
-    if (setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) < 0)
-    {
-        fprintf(stderr,"SO_REUSEADDR setsockopt error : %s\n", strerror(errno));
-    }
+    // int optval = 1;               
+    // if (setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) < 0)
+    // {
+    //     fprintf(stderr,"SO_REUSEADDR setsockopt error : %s\n", strerror(errno));
+    // }
 
-    /* filling SA structure */
+    /* Fill SA structure */
     serv_addr.sin6_family = AF_INET6;
     serv_addr.sin6_addr = in6addr_any;
     serv_addr.sin6_port = htons(HANGMAN_PORT);
@@ -75,14 +75,14 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    /* Client Handling */
+    /* Clients Handling */
     while (1)
     {
         socklen_t clilen = sizeof(players[client_ctr].sock_addr);
         if ((players[client_ctr].sock_fd = accept(listen_fd, (struct sockaddr *)&players[client_ctr].sock_addr, &clilen)) < 0)
         {
 			if (errno == EINTR)
-				continue;		/* back to while() */
+				continue;
 			else
 				perror("accept error");
 				exit(1);
@@ -118,6 +118,7 @@ int main(int argc, char* argv[])
 
                     while (1)
                     {
+                        /* Check if GUESSER has won/lost every iteration */
                         bool game_is_on = get_guess(&players[GUESSER_PLAYER], clue_buff, guessed_clue_buff);
                         if (game_is_on)
                         {
